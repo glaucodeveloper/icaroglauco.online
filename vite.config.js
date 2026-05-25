@@ -1,6 +1,12 @@
 import { defineConfig, loadEnv } from "vite";
 import fs from "node:fs";
 import path from "node:path";
+import {
+  ensureBlogFiles,
+  readBlogConfig,
+  readBlogIndex,
+  saveBlogConfig
+} from "./scripts/blog-engine.js";
 const workstyleProfile = fs.readFileSync(path.resolve("functions", "prompts", "icaro-workstyle.md"), "utf8");
 const siteGuideBrief = [
   "Mapa resumido do site de Icaro Glauco:",
@@ -8,7 +14,7 @@ const siteGuideBrief = [
   "- Requisitos: mostra como ele trata leitura de problema, entidade, fluxo, regra e escopo antes de interface.",
   "- Proposta: existe uma conversa guiada para transformar interesse difuso em leitura inicial de proposta e aplicabilidade.",
   "- IA aplicada: explica que agentes entram como aceleradores de pesquisa, sintese e iteracao, sem substituir criterio.",
-  "- Linguagens: destaca Glauco Ruby e dsljs como frentes autorais de runtime, linguagem e tooling.",
+  "- Linguagens: destaca Glauco Ruby e pesquisa de tooling como frentes autorais de runtime, linguagem e entrega.",
   "- Engenharia: enfatiza arquitetura, comportamento, three.js, Vite e Firebase como base tecnica pragmatica.",
   "- Experiencias: reune Irlanda, construcao rural e escritorio imobiliario como base de mundo, operacao e responsabilidade pratica.",
   "- Sistema: mostra o site como base para crescer em portfolio, intake e descoberta contextual.",
@@ -200,6 +206,51 @@ function createLocalAgentApiPlugin(geminiApiKey) {
   };
 }
 
+function createLocalBlogApiPlugin() {
+  return {
+    name: "local-blog-api",
+    configureServer(server) {
+      ensureBlogFiles();
+
+      server.middlewares.use(async (req, res, next) => {
+        if (!req.url?.startsWith("/api/blog")) {
+          next();
+          return;
+        }
+
+        if (req.method === "OPTIONS") {
+          writeJson(res, 204, {});
+          return;
+        }
+
+        try {
+          if (req.url === "/api/blog/config" && req.method === "GET") {
+            writeJson(res, 200, readBlogConfig());
+            return;
+          }
+
+          if (req.url === "/api/blog/config" && req.method === "POST") {
+            const body = await readJsonBody(req);
+            writeJson(res, 200, saveBlogConfig(body));
+            return;
+          }
+
+          if (req.url === "/api/blog/posts" && req.method === "GET") {
+            writeJson(res, 200, { posts: readBlogIndex() });
+            return;
+          }
+
+          writeJson(res, 404, { error: "Rota de blog nao encontrada." });
+        } catch (error) {
+          writeJson(res, 500, {
+            error: error instanceof Error ? error.message : "Erro interno no endpoint local do blog."
+          });
+        }
+      });
+    }
+  };
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const geminiApiKey =
@@ -211,7 +262,8 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
-      createLocalAgentApiPlugin(geminiApiKey)
+      createLocalAgentApiPlugin(geminiApiKey),
+      createLocalBlogApiPlugin()
     ]
   };
 });

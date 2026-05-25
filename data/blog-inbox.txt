@@ -1,0 +1,2 @@
+# Escreva uma ideia por linha.
+# Ao salvar uma linha nova, o watcher gera um post markdown em public/posts.

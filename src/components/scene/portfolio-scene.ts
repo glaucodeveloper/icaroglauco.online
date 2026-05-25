@@ -1,4 +1,4 @@
-import { sceneSemantics } from "./dsl/app-construct.dsljs";
+import { sceneSemantics } from "../../framework/structural-renderer.ts";
 
 const {
   repeatWrappingMode,

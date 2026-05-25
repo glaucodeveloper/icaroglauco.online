@@ -2,24 +2,27 @@
   "name": "icaroglauco.online",
   "version": "1.0.0",
   "description": "Portfolio pessoal em Vite com Firebase Hosting",
+  "type": "module",
   "scripts": {
     "dev": "vite",
+    "blog": "node scripts/blog-watcher.js",
+    "blog:startup": "node scripts/install-startup.js",
+    "generate:framework": "node scripts/generate-macro-frontend.mjs",
+    "predev": "npm run generate:framework",
+    "prebuild": "npm run generate:framework",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "npm run build && npx firebase-tools deploy --project icaroglaucoonline",
-    "generate:dsl": "node scripts/generate-dsljs.mjs",
-    "predev": "npm run generate:dsl",
-    "prebuild": "npm run generate:dsl"
+    "deploy": "npm run build && npx firebase-tools deploy --project icaroglaucoonline"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@icaroglauco/idsljs": "file:../macro-oriented-javascript",
     "firebase": "^12.11.0",
     "three": "^0.183.2"
   },
   "devDependencies": {
+    "@icaroglauco/dsljs": "^0.1.3",
     "firebase-tools": "^15.11.0",
     "vite": "^8.0.3"
   }
